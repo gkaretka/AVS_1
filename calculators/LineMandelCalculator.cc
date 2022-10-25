@@ -37,22 +37,26 @@ LineMandelCalculator::~LineMandelCalculator() {
 inline void LineMandelCalculator::InitArray() {
     // init partial calculation array
 
-    #pragma omp simd
-    for (int j = 0; j < width; j++) {
-        float v = x_start + j * dx;
-        #pragma omp simd
-        for (int i = 0; i < height/2; i++) {
-            values_real[i*width+j] = v;
-            data[i*width+j] = 100;
+    const int _width = width;
+    const int _height = height;
+    const int _limit = limit;
+    const float _x_start = x_start;
+    const float _y_start = y_start;
+    const float _dx = dx;
+    const float _dy = dy;
+
+    for (int i = 0; i < _height / 2; i++) {
+#pragma omp simd
+        for (int j = 0; j < _width; j++) {
+            values_real[i * _width + j] = _x_start + j * _dx;
+            data[i * _width + j] = 100;
         }
     }
-
-    #pragma omp simd
-    for (int i = 0; i < height/2; i++) {
-        float v = y_start + i * dy;
-        #pragma omp simd
-        for (int j = 0; j < width; j++) {
-            values_img[i*width+j] = v;
+    for (int i = 0; i < _height / 2; i++) {
+        float v = _y_start + i * _dy;
+#pragma omp simd
+        for (int j = 0; j < _width; j++) {
+            values_img[i * _width + j] = v;
         }
     }
 }
@@ -63,20 +67,25 @@ int *LineMandelCalculator::calculateMandelbrot() {
     const int _width = width;
     const int _height = height;
     const int _limit = limit;
+    const float _x_start = x_start;
+    const float _y_start = y_start;
+    const float _dx = dx;
+    const float _dy = dy;
 
     for (int i = 0; i < _height/2; i++) {
         for (int j = 0; j < _limit; ++j) {
 
-            #pragma omp simd //simdlen(16)
+#pragma omp simd simdlen(16)
             for (int k = 0; k < _width; k++) {
                 float real = values_real[i*_width+k];
                 float img = values_img[i*_width+k];
                 float r2 = real * real;
                 float i2 = img * img;
 
-                values_img[i*_width+k] = (real == 0 || r2 + i2 > 4.0f) ? 0 : 2.0f * real * img + (y_start + i * dy);
-                values_real[i*_width+k] = (real == 0 || r2 + i2 > 4.0f) ? 0 : r2 - i2 + (x_start + k * dx);
-                
+                values_img[i * _width + k] =
+                    (real == 0 || r2 + i2 > 4.0f) ? 0 : 2.0f * real * img + (_y_start + i * _dy);
+                values_real[i * _width + k] = (real == 0 || r2 + i2 > 4.0f) ? 0 : r2 - i2 + (_x_start + k * _dx);
+
                 data[i*_width+k] = (r2 + i2 > 4.0f) ? j : data[i*_width+k];
             }
         }
