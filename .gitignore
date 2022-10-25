@@ -5,3 +5,4 @@ build/
 mandelbrot
 *.npz
 CMakeFiles/
+CMakeCache.txt
