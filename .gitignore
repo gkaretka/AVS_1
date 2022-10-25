@@ -1,0 +1,7 @@
+zadani.pdf
+MB-xlogin00.txt
+build/
+.vscode
+mandelbrot
+*.npz
+CMakeFiles/
