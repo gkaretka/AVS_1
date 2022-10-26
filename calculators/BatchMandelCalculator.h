@@ -15,9 +15,12 @@ public:
     BatchMandelCalculator(unsigned matrixBaseSize, unsigned limit);
     ~BatchMandelCalculator();
     int * calculateMandelbrot();
+    void InitArray();
 
 private:
-    // @TODO add all internal parameters
+    int *data __attribute__((aligned(64)));
+    float *values_real __attribute__((aligned(64)));
+    float *values_img __attribute__((aligned(64)));
 };
 
 #endif

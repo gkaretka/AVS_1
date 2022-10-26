@@ -46,15 +46,15 @@ inline void LineMandelCalculator::InitArray() {
     const float _dy = dy;
 
     for (int i = 0; i < _height / 2; i++) {
-#pragma omp simd
+#pragma omp simd simdlen(16)
         for (int j = 0; j < _width; j++) {
             values_real[i * _width + j] = _x_start + j * _dx;
-            data[i * _width + j] = 100;
+            data[i * _width + j] = _limit;
         }
     }
     for (int i = 0; i < _height / 2; i++) {
         float v = _y_start + i * _dy;
-#pragma omp simd
+#pragma omp simd simdlen(16)
         for (int j = 0; j < _width; j++) {
             values_img[i * _width + j] = v;
         }
@@ -73,27 +73,29 @@ int *LineMandelCalculator::calculateMandelbrot() {
     const float _dy = dy;
 
     for (int i = 0; i < _height/2; i++) {
-        for (int j = 0; j < _limit; ++j) {
+        int done_counter = 1;
+        for (int j = 0; done_counter < _width && j < _limit; ++j) {
 
-#pragma omp simd simdlen(16)
+#pragma omp simd simdlen(16) reduction(+ : done_counter)
             for (int k = 0; k < _width; k++) {
                 float real = values_real[i*_width+k];
                 float img = values_img[i*_width+k];
                 float r2 = real * real;
                 float i2 = img * img;
 
+                data[i * _width + k] = (r2 + i2 > 4.0f) ? j : data[i * _width + k];
                 values_img[i * _width + k] =
                     (real == 0 || r2 + i2 > 4.0f) ? 0 : 2.0f * real * img + (_y_start + i * _dy);
                 values_real[i * _width + k] = (real == 0 || r2 + i2 > 4.0f) ? 0 : r2 - i2 + (_x_start + k * _dx);
-
-                data[i*_width+k] = (r2 + i2 > 4.0f) ? j : data[i*_width+k];
+                if (r2 + i2 > 4.0f) {
+                    done_counter += 1;
+                }
             }
         }
     }
-    
-    #pragma omp simd
+
     for (int i = _height/2; i < _height; i++) {
-        #pragma omp simd
+#pragma omp simd simdlen(16)
         for (int j = 0; j < _width; j++) {
             data[i*_width+j] = data[(height-i-1)*_width+j];
         }

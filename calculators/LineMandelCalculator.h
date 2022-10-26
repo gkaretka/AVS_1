@@ -16,7 +16,7 @@ public:
     inline void InitArray();
 
 private:
-    int *data;
-    float *values_real;
-    float *values_img;
+    int *data __attribute__((aligned(64)));
+    float *values_real __attribute__((aligned(64)));
+    float *values_img __attribute__((aligned(64)));
 };
