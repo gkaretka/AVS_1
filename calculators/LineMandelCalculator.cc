@@ -52,6 +52,7 @@ inline void LineMandelCalculator::InitArray() {
             data[i * _width + j] = _limit;
         }
     }
+
     for (int i = 0; i < _height / 2; i++) {
 #pragma omp simd simdlen(16)
         for (int j = 0; j < _width; j++) {
@@ -74,12 +75,12 @@ int *LineMandelCalculator::calculateMandelbrot() {
     float *_values_real = values_real;
     int *_data = data;
 
-    for (int i = 0; i < _height/2; i++) {
+    for (int i = 0; i < _height / 2; i++) {
         int done_counter = 0;
         const float _ysidy = _y_start + i * _dy;
         for (int j = 0; done_counter < _width && j < _limit; ++j) {
 
-#pragma omp simd simdlen(16) reduction(+ : done_counter) aligned(_data, _values_img, _values_real : 64)
+#pragma omp simd simdlen(64) reduction(+ : done_counter) aligned(_data, _values_img, _values_real : 64)
             for (int k = 0; k < _width; k++) {
                 float real = _values_real[i * _width + k];
                 float img = _values_img[i * _width + k];
@@ -98,9 +99,10 @@ int *LineMandelCalculator::calculateMandelbrot() {
     }
 
     for (int i = _height/2; i < _height; i++) {
-#pragma omp simd simdlen(16)
+        int loc = (_height - i - 1) * _width;
+#pragma omp simd simdlen(64)
         for (int j = 0; j < _width; j++) {
-            _data[i * _width + j] = _data[(height - i - 1) * _width + j];
+            _data[i * _width + j] = _data[loc + j];
         }
     }
 

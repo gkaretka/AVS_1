@@ -45,7 +45,7 @@ inline void BatchMandelCalculator::InitArray() {
     const float _dy = dy;
 
     for (int i = 0; i < _height / 2; i++) {
-#pragma omp simd simdlen(16)
+#pragma omp simd simdlen(64)
         for (int j = 0; j < _width; j++) {
             values_real[i * _width + j] = _x_start + j * _dx;
             data[i * _width + j] = _limit;
@@ -53,7 +53,7 @@ inline void BatchMandelCalculator::InitArray() {
     }
     for (int i = 0; i < _height / 2; i++) {
         float v = _y_start + i * _dy;
-#pragma omp simd simdlen(16)
+#pragma omp simd simdlen(64)
         for (int j = 0; j < _width; j++) {
             values_img[i * _width + j] = v;
         }
@@ -74,20 +74,30 @@ int * BatchMandelCalculator::calculateMandelbrot () {
     float *_values_real = values_real;
     int *_data = data;
 
-    const int batch_size = 128;
+    constexpr int batch_size = 128;
 
-    // batching for height
-    for (int batchi = 0; batchi < _height / 2 / batch_size; batchi++) {
-        for (int i = batchi * batch_size; i < (batchi + 1) * batch_size; i++) {
+    // block for height
+    for (int batchi = 0; batchi < (_height / 2) / batch_size; batchi++) {
+        const int batch_i_start = batchi * batch_size;
+        const int batch_i_end = (batchi + 1) * batch_size;
 
-            const float _ysidy = _y_start + i * _dy;
-            int done_counter = 0;
+        // block for width
+        for (int batchk = 0; batchk < _width / batch_size; batchk++) {
+            const int batch_k_end = (batchk + 1) * batch_size;
+            const int batch_k_start = batchk * batch_size;
 
-            // batching for width
-            for (int j = 0; done_counter < _width && j < _limit; ++j) {
-                for (int batchk = 0; batchk < _width / batch_size; batchk++) {
-#pragma omp simd simdlen(16) reduction(+ : done_counter) aligned(_data, _values_img, _values_real : 64)
-                    for (int k = batchk * batch_size; k < (batchk + 1) * batch_size; k++) {
+            // for height in block
+            for (int i = batch_i_start; i < batch_i_end; i++) {
+
+                const float _ysidy = _y_start + i * _dy;
+                int done_counter = 0;
+
+                // limit check
+                for (int j = 0; done_counter < batch_size && j < _limit; ++j) {
+
+                    // for width in block
+#pragma omp simd simdlen(64) reduction(+ : done_counter) aligned(_data, _values_img, _values_real : 64)
+                    for (int k = batch_k_start; k < batch_k_end; k++) {
                         float real = _values_real[i * _width + k];
                         float img = _values_img[i * _width + k];
                         float r2 = real * real;
@@ -105,13 +115,13 @@ int * BatchMandelCalculator::calculateMandelbrot () {
                 }
             }
         }
+    }
 
         for (int i = _height / 2; i < _height; i++) {
-#pragma omp simd simdlen(16)
+#pragma omp simd simdlen(64)
             for (int j = 0; j < _width; j++) {
-                _data[i * _width + j] = _data[(height - i - 1) * _width + j];
+                _data[i * _width + j] = _data[(_height - i - 1) * _width + j];
             }
         }
-    }
-    return data;
+        return data;
 }
