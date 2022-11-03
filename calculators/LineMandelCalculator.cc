@@ -98,7 +98,7 @@ int *LineMandelCalculator::calculateMandelbrot() {
         }
     }
 
-    for (int i = _height/2; i < _height; i++) {
+    for (int i = _height / 2; i < _height; i++) {
         int loc = (_height - i - 1) * _width;
 #pragma omp simd simdlen(64)
         for (int j = 0; j < _width; j++) {
