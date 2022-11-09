@@ -20,9 +20,9 @@ constexpr int BLOCK_SIZE = 256;
 BatchMandelCalculator::BatchMandelCalculator (unsigned matrixBaseSize, unsigned limit) :
 	BaseMandelCalculator(matrixBaseSize, limit, "BatchMandelCalculator")
 {
-    data = (int *)(aligned_alloc(64, height * width * sizeof(int)));
+    const int batch_size_x = std::min(width / 2, BLOCK_SIZE);
 
-    const int batch_size_x = width < BLOCK_SIZE ? width : BLOCK_SIZE;
+    data = (int *)(aligned_alloc(64, height * width * sizeof(int)));
     values_real = (float *)(aligned_alloc(64, batch_size_x * sizeof(float)));
     values_img = (float *)(aligned_alloc(64, batch_size_x * sizeof(float)));
 }
@@ -49,11 +49,9 @@ int *BatchMandelCalculator::calculateMandelbrot() {
     float *_values_real = values_real;
     int *_data = data;
 
-    const int batch_size_x = _width < BLOCK_SIZE ? _width : BLOCK_SIZE;
-
+    const int batch_size_x = std::min(width / 2, BLOCK_SIZE);
     // block for height
     for (int i = 0; i < (_height / 2); i++) {
-
         // block for width
         for (int batchk = 0; batchk < _width / batch_size_x; batchk++) {
             const int batch_k_start = batchk * batch_size_x;

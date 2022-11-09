@@ -13,7 +13,6 @@ public:
     LineMandelCalculator(unsigned matrixBaseSize, unsigned limit);
     ~LineMandelCalculator();
     int *calculateMandelbrot();
-    inline void InitArray();
 
 private:
     int *data __attribute__((aligned(64)));

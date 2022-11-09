@@ -34,34 +34,7 @@ LineMandelCalculator::~LineMandelCalculator() {
     values_real = NULL;
 }
 
-inline void LineMandelCalculator::InitArray() {
-    // init partial calculation array
-
-    const int _width = width;
-    const int _height = height;
-    const int _limit = limit;
-    const float _x_start = x_start;
-    const float _y_start = y_start;
-    const float _dx = dx;
-    const float _dy = dy;
-    float *_values_img = values_img;
-    float *_values_real = values_real;
-    int *_data = data;
-
-    for (int i = 0; i < _height / 2; i++) {
-        float v = _y_start + i * _dy;
-
-#pragma omp simd simdlen(64) aligned(_data, _values_img, _values_real : 64)
-        for (int j = 0; j < _width; j++) {
-            _values_real[i * _width + j] = _x_start + j * _dx;
-            _values_img[i * _width + j] = v;
-        }
-    }
-}
-
 int *LineMandelCalculator::calculateMandelbrot() {
-    // InitArray();
-
     const int _width = width;
     const int _height = height;
     const int _limit = limit;

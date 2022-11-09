@@ -14,8 +14,7 @@ class BatchMandelCalculator : public BaseMandelCalculator
 public:
     BatchMandelCalculator(unsigned matrixBaseSize, unsigned limit);
     ~BatchMandelCalculator();
-    int * calculateMandelbrot();
-    void InitArray();
+    int *calculateMandelbrot();
 
 private:
     int *data __attribute__((aligned(64)));
