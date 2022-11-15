@@ -15,7 +15,7 @@
 
 #include "BatchMandelCalculator.h"
 
-constexpr int BLOCK_SIZE = 256;
+constexpr int BLOCK_SIZE = 128;
 
 BatchMandelCalculator::BatchMandelCalculator (unsigned matrixBaseSize, unsigned limit) :
 	BaseMandelCalculator(matrixBaseSize, limit, "BatchMandelCalculator")
@@ -63,6 +63,7 @@ int *BatchMandelCalculator::calculateMandelbrot() {
             for (int m = 0; m < batch_size_x; m++) {
                 _values_real[m] = _x_start + (batch_k_start + m) * _dx;
                 _values_img[m] = _ysidy;
+                _data[_width_pointer + m] = 0;
             }
 
             // limit check

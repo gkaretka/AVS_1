@@ -2,32 +2,42 @@
 
 1. Proč je nutné určovat, zda má výpočet pokračovat?
 ==============================================================================
-Aby sme zbytocne neiterovali nad uz hotovym riadkom. Toto moze sposobit znacne
-spomalenie celkoveho vypoctu.
+Ak chceme zrychlit program, nema zmysel znova prechadzat cez riadky/batche,
+v ktorych uz vsetky hodnoty presiahli podmienku abs(z_n) > 2 (tj. nasli sme,
+v ktorej iteracii prekrocili tuto podmienku). Preto mozeme robit redukciu nad
+premennou, do ktorej pripocitavame, ak nejaky prvok "dokoncime" a ak sa tato
+premenna rovna ocakavanemu poctu prvkov v riadku/batchi, mozeme ist na dalsi
+riadok/batch.
 
 2. Byla "Line" vektorizace efektivní? Proč?
 ==============================================================================
-Ano, line vektorizacia bola efektivna, umoznila nam zvektorizovat vypocet
-realnej a imaginarnej zlozky pre jednotlive stlpce. Taktiez umoznila vyuzitie
-redukcie pre predcasne ukoncenie vypoctu.
+Ano, line vektorizacia bola efektivna, umoznila nam zvektorizovat vypocty
+najvnutornejsej slucky for (po prehodeni). Vysledky vektorizacie mozeme vidiet
+v Intel Advisor, kde pri vnutornej slucke mame efektivitu zvektorizovania na
+100 %. Vypocet realnej a imaginarnej zlozky vyuzivaju maximalne SIMD jednotky.
+Taktiez umoznila vyuzitie redukcie pre predcasne ukoncenie vypoctu.
 
 3. Jaká byla dosažena výkonnost v Intel Advisoru pro jednotlivé implementace 
 (v GFLOPS)?
 ==============================================================================
 Dosiahnuta vykonnost:
 REF: 2.21 GFLOPS
-LINE: 47.07 GFLOPS (vypocetnej slucky 51.05 Self GFLOPS)
-BATCH: 37.86 GFLOPS (vypocetnej slucky 61.05 Self GFLOPS)
+LINE: 47.8 GFLOPS (vypocetnej slucky 61.6 Self GFLOPS)
+BATCH: 35.9 GFLOPS (vypocetnej slucky 92.9 Self GFLOPS)
 
 4. Jaká část kódu byla vektorizována v "Line" implementaci? Vyčteme tuto 
 informaci i u batch kalkulátoru?
 ==============================================================================
-Batch som implementoval ako Line, avsak, riadok som rozdelil na useky 
-(moje batch su teda 1xM). Z toho plynie, ze rovnaka cast kodu je vektorizovana.
+V line implementacii boli zvektorizovane: najvnutornejsia slucka vypocetnej
+casti programu, slucka, ktora naplna pred vypoctom kazdy riadok a slucka,
+ktora kopiruje data z prvej polky do druhej polky (pocita sa iba horna
+polovica). Batch som implementoval ako Line, avsak, riadok som rozdelil na
+useky (moje batch su teda 1xM). Z toho plynie, ze rovnaka cast kodu je 
+vektorizovana.
 
 5. Co vyčteme z Roofline modelu pro obě vektorizované implementace?
 ==============================================================================
-Obydve implementacie maju lepsi pristup do cache ako ref. implemetacia. 
+Obidve implementacie maju lepsi pristup do cache ako ref. implemetacia a . 
 V mojom pripade su obe implementaci zhora ohranicene "SP Vector Add Peak".
 Nachadzame sa v casti, kde je program ohraniceny vypocetnou a rychlostou
 pamate cache zariadenia. 

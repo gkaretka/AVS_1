@@ -55,6 +55,7 @@ int *LineMandelCalculator::calculateMandelbrot() {
         for (int m = 0; m < _width; m++) {
             _values_real[m] = _x_start + m * _dx;
             _values_img[m] = _ysidy;
+            _data[_width_pointer + m] = 0;
         }
         for (int j = 1; done_counter < _width && j <= _limit; j++) {
             done_counter = 0;
